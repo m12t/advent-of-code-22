@@ -43,7 +43,20 @@ import (
 // Find the Elf carrying the most Calories. How many total Calories is that Elf carrying?
 
 func main() {
-	f, err := os.Open("input.txt")
+	partOneSolution := partOne("input.txt")
+	fmt.Println(partOneSolution)
+}
+
+func partOne(path string) int {
+	// algorithm description:
+	// two counter vars: count, max
+	// read the data line-by-line
+	// if a newline is reached:
+	// 1. calculate the max: max = math.Max(max, curr)
+	// 2. reset the counter to 0
+	// else add the value to the counter
+
+	f, err := os.Open(path)
 	defer f.Close()
 
 	if err != nil {
@@ -69,14 +82,5 @@ func main() {
 			count += val
 		}
 	}
-	fmt.Println(max)
-
-	// algorithm description:
-	// two counter vars: count, max
-	// read the data line-by-line
-	// if a newline is reached:
-	// 1. calculate the max: max = math.Max(max, curr)
-	// 2. reset the counter to 0
-	// else add the value to the counter
-
+	return max
 }
