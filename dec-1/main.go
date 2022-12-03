@@ -10,9 +10,14 @@ import (
 )
 
 // Problem:
-// The jungle must be too overgrown and difficult to navigate in vehicles or access from the air; the Elves' expedition traditionally goes on foot. As your boats approach land, the Elves begin taking inventory of their supplies. One important consideration is food - in particular, the number of Calories each Elf is carrying (your puzzle input).
+// The jungle must be too overgrown and difficult to navigate in vehicles or access from the air;
+// the Elves' expedition traditionally goes on foot. As your boats approach land, the Elves begin
+// taking inventory of their supplies. One important consideration is food - in particular,
+// the number of Calories each Elf is carrying (your puzzle input).
 
-// The Elves take turns writing down the number of Calories contained by the various meals, snacks, rations, etc. that they've brought with them, one item per line. Each Elf separates their own inventory from the previous Elf's inventory (if any) by a blank line.
+// The Elves take turns writing down the number of Calories contained by the various meals,
+// snacks, rations, etc. that they've brought with them, one item per line.
+//Each Elf separates their own inventory from the previous Elf's inventory (if any) by a blank line.
 
 // For example, suppose the Elves finish writing their items' Calories and end up with the following list:
 
@@ -74,7 +79,7 @@ func partOne(path string) int {
 		panic(err)
 	}
 
-	count, max := 0, 0
+	count, highest := 0, 0
 
 	// loop over the file line by line:
 	scanner := bufio.NewScanner(f)
@@ -83,7 +88,7 @@ func partOne(path string) int {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
-			max = int(math.Max(float64(count), float64(max)))
+			highest = int(math.Max(float64(count), float64(highest)))
 			count = 0
 		} else {
 			val, err := strconv.Atoi(line)
@@ -93,7 +98,7 @@ func partOne(path string) int {
 			count += val
 		}
 	}
-	return max
+	return highest
 }
 
 type Node struct {
@@ -123,24 +128,17 @@ func initializeLinkedList() *LinkedList {
 // and insert the new value where it belongs, preserving sorting.
 func (list *LinkedList) insort(val int) {
 
-	fmt.Println("smallest value:", list.head.val)
-	fmt.Println("largest value:", list.head.next.next.val)
 	if val <= list.head.val {
 		return
 	}
 	newNode := &Node{val: val}
 
-	// last checkpoint: right here. refactored to use LinkedList
-
 	// find the insertion slot
 	node := list.head
 	var last *Node
-	fmt.Println("c")
 	for node != nil && node.val < val {
-		fmt.Println("d")
 		if node.next == nil {
 			// newNode it's the new largest node
-			fmt.Printf("%d is the largest value (greater than %d)\n", val, node.val)
 			node.next = newNode
 			list.head = list.head.next
 			return
@@ -185,12 +183,16 @@ func (list *LinkedList) sum() int {
 
 func partTwo(path string) int {
 	// algorithm description:
-	// two counter vars: count, max
-	// read the data line-by-line
-	// if a newline is reached:
-	// 1. calculate the max: max = math.Max(max, curr)
-	// 2. reset the counter to 0
-	// else add the value to the counter
+	// * Part two uses similar code to part one in regards to
+	//   reading the data line-by-line.
+	// * This time only one counter is used and in place of the `highest`
+	//   variable is a linked list of the 3 current highest calorie counts.
+	// * Once a newline is reached, the `count` is sent to `insort()` which
+	//   will insert the count into the linked list if it is greater
+	//   than the current lowest value.
+	// * The linked list is a singly linked list with a fixed length of 3 nodes.
+	//   The nodes are sorted from smallest -> largest.
+	//   `list.head` points to the smallest value
 
 	// linked of size 3, sorted, walk backwards from the smallest to largest
 	list := initializeLinkedList()
@@ -211,9 +213,7 @@ func partTwo(path string) int {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
-			fmt.Println("\n=========")
 			list.insort(count)
-			list.print()
 			count = 0
 		} else {
 			val, err := strconv.Atoi(line)
@@ -224,5 +224,5 @@ func partTwo(path string) int {
 		}
 	}
 	list.print()
-	return list.sum() // todo: clean this up
+	return list.sum()
 }
