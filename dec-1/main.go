@@ -71,6 +71,8 @@ func main() {
 	fmt.Println("part two:", partTwoSolution)
 }
 
+// <<<<<<<<<<<<<<<<<<<<<<<<< Part one >>>>>>>>>>>>>>>>>>>>>>>>>
+
 func partOne(path string) int {
 	// algorithm description:
 	// two counter vars: count, max
@@ -109,18 +111,17 @@ func partOne(path string) int {
 	return highest
 }
 
+// <<<<<<<<<<<<<<<<<<<<<<<<< Part Two >>>>>>>>>>>>>>>>>>>>>>>>>
 type Node struct {
 	val  int
 	next *Node
 }
 
-// the implementation for this problem is a sorted list
-// that holds the smallest value at the head
 type LinkedList struct {
 	head *Node
 }
 
-// initialize a doubly linked list of size 3 and return the head
+// initialize a singly linked list of size 3
 func initializeLinkedList() *LinkedList {
 	list := LinkedList{}
 	node := &Node{}
@@ -158,11 +159,12 @@ func (list *LinkedList) insort(val int) {
 	// newNode must be inserted in the first or second spot
 	newNode.next = node
 	if last == nil {
-		// the new value is greater that the lowest of the 3 only.
+		// the new value is greater that the current smallest value.
+		// It's the new head
 		list.head = newNode
 		return
 	}
-	// if execution gets here, the new node goes in the middle
+	// if execution gets here, the new node goes somewhere in the middle
 	// `last` stores the last node whose val <= newNode.val
 	// `node` stores the node whose val > newNode.val
 	last.next = newNode
