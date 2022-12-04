@@ -144,13 +144,6 @@ func partOne(path string) int {
 
 // <<<<<<<<<<<<<<<<<<<<<<<<< Part Two >>>>>>>>>>>>>>>>>>>>>>>>>
 
-// X: must lose
-// Y: must draw
-// Z: must win
-
-// * How to refactor both parts to minimize code changes...
-//   ideally keep scoreMatch the same
-
 func partTwo(path string) int {
 	f, err := os.Open(path)
 	defer f.Close()
