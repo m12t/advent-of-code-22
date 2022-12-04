@@ -76,6 +76,11 @@ import (
 // draw: 3
 // win:  6
 
+const (
+	winPoints  = 6
+	drawPoints = 3
+)
+
 //   - The map `convert` maps the second move encoding {"A", "B", "C"}
 //     to {"X", "Y", "Z"} for easier comparisons between moves.
 var convert = map[string]string{"A": "X", "B": "Y", "C": "Z"}
@@ -88,6 +93,8 @@ var moveScores = map[string]int{"X": 1, "Y": 2, "Z": 3}
 //     eg. "Rock" ("X") beats "Scissors" ("Z")
 var beatenBy = map[string]string{"X": "Z", "Y": "X", "Z": "Y"}
 
+//   - Essentially just a reversed list of `beatenBy` that's used
+//     in part two when figuring out the move needed to win.
 var beats = map[string]string{"Z": "X", "X": "Y", "Y": "Z"}
 
 func main() {
@@ -105,9 +112,9 @@ func scoreMatch(myMove, opponentMove string, score *int) {
 
 	// find the winner and increment the score accordingly
 	if myMove == opponentMove {
-		*score += 3
+		*score += drawPoints
 	} else if opponentMove == beatenBy[myMove] {
-		*score += 6
+		*score += winPoints
 	} else {
 	}
 }
@@ -167,10 +174,10 @@ func partTwo(path string) int {
 			score += moveScores[beatenBy[opponentMove]]
 		} else if outcome == "Y" {
 			// must tie
-			score += moveScores[opponentMove] + 3
+			score += moveScores[opponentMove] + drawPoints
 		} else {
 			// must win
-			score += moveScores[beats[opponentMove]] + 6
+			score += moveScores[beats[opponentMove]] + winPoints
 		}
 	}
 	return score
