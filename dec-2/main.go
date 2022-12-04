@@ -164,13 +164,13 @@ func partTwo(path string) int {
 		outcome := line[1]
 		if outcome == "X" {
 			// must lose
-			score += moveScores[beatenBy[opponentMove]] + 6
+			score += moveScores[beatenBy[opponentMove]]
 		} else if outcome == "Y" {
 			// must tie
 			score += moveScores[opponentMove] + 3
 		} else {
 			// must win
-			score += moveScores[beats[opponentMove]]
+			score += moveScores[beats[opponentMove]] + 6
 		}
 	}
 	return score
