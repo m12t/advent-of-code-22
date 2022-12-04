@@ -48,6 +48,48 @@
 
 // Find the item type that appears in both compartments of each rucksack.
 // What is the sum of the priorities of those item types?
+
+// --- Part Two ---
+// As you finish identifying the misplaced items, the Elves come to you with another issue.
+
+// For safety, the Elves are divided into groups of three. Every Elf carries a badge that
+// identifies their group. For efficiency, within each group of three Elves, the badge is the
+// only item type carried by all three Elves. That is, if a group's badge is item type B,
+// then all three Elves will have item type B somewhere in their rucksack, and at most two
+// of the Elves will be carrying any other item type.
+
+// The problem is that someone forgot to put this year's updated authenticity
+// sticker on the badges. All of the badges need to be pulled out of the
+// rucksacks so the new authenticity stickers can be attached.
+
+// Additionally, nobody wrote down which item type corresponds to each group's badges.
+// The only way to tell which item type is the right one is by finding the one item type
+// that is common between all three Elves in each group.
+
+// Every set of three lines in your list corresponds to a single group,
+// but each group can have a different badge item type. So, in the above example,
+// the first group's rucksacks are the first three lines:
+
+// vJrwpWtwJgWrhcsFMMfFFhFp
+// jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+// PmmdzqPrVvPwwTWBwg
+// And the second group's rucksacks are the next three lines:
+
+// wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+// ttgJtRGJQctTZtZT
+// CrZsJsPPZsGzwwsLwLmpwMDw
+
+// In the first group, the only item type that appears in all three rucksacks
+// is lowercase r; this must be their badges. In the second group,
+// their badge item type must be Z.
+
+// Priorities for these items must still be found to organize the sticker attachment
+// efforts: here, they are 18 (r) for the first group and 52 (Z) for the second group.
+// The sum of these is 70.
+
+// Find the item type that corresponds to the badges of each three-Elf group.
+// What is the sum of the priorities of those item types?
+
 package main
 
 import (
@@ -64,9 +106,9 @@ const (
 
 func main() {
 	partOneSolution := partOne("input.txt")
-	// partTwoSolution := partTwo("input.txt")
+	partTwoSolution := partTwo("input.txt")
 	fmt.Println("part one:", partOneSolution)
-	// fmt.Println("part two:", partTwoSolution)
+	fmt.Println("part two:", partTwoSolution)
 }
 
 func incrementPriority(c rune, totalPriority *int) {
@@ -115,6 +157,67 @@ func partOne(path string) int {
 		rucksackOne, rucksackTwo := line[:mid], line[mid:]
 		dupe := findDupe(rucksackOne, rucksackTwo)
 		incrementPriority(dupe, &totalPriority)
+	}
+	return totalPriority
+
+}
+
+func findGroupBadge(rucksacks *[3]string) rune {
+	// frequency is a global map that stores the
+	// count associated with a rune where a single
+	// rucksack can only increment an item once.
+	frequency := make(map[rune]int)
+	for i := 0; i < 3; i++ {
+		// loop over each rucksack and create a local
+		// set `s` to eliminate duplicate items within
+		// the same rucksack
+		s := make(map[rune]bool)
+		for _, c := range rucksacks[i] {
+			// loop over each rune in the rucksack
+			if _, found := s[c]; !found {
+				// if this item hasn't yet been seen
+				// in this particular rucksack, increment
+				// the global map `frequency`
+				frequency[c]++
+			}
+			s[c] = true
+		}
+	}
+
+	for rune, count := range frequency {
+		if count == 3 {
+			return rune
+		}
+	}
+
+	panic("No badge found!")
+
+}
+
+func partTwo(path string) int {
+	f, err := os.Open(path)
+	defer f.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
+	// loop over the file line by line:
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	i, totalPriority := 0, 0
+	var group [3]string
+
+	for scanner.Scan() {
+		rucksack := scanner.Text()
+		group[i] = rucksack
+		i++
+		if i%3 == 0 {
+			dupe := findGroupBadge(&group)
+			incrementPriority(dupe, &totalPriority)
+			i = 0
+		}
 	}
 	return totalPriority
 
