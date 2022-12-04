@@ -42,6 +42,24 @@
 // In this example, if you were to follow the strategy guide, you would get a total score of 15 (8 + 1 + 6).
 
 // What would your total score be if everything goes exactly according to your strategy guide?
+
+// --- Part Two ---
+// The Elf finishes helping with the tent and sneaks back over to you.
+// "Anyway, the second column says how the round needs to end: X means you need to lose,
+// Y means you need to end the round in a draw, and Z means you need to win. Good luck!"
+
+// The total score is still calculated in the same way, but now you need to figure out
+// what shape to choose so the round ends as indicated. The example above now goes like this:
+
+// In the first round, your opponent will choose Rock (A), and you need the round to
+// end in a draw (Y), so you also choose Rock. This gives you a score of 1 + 3 = 4.
+// In the second round, your opponent will choose Paper (B), and you choose Rock so you
+// lose (X) with a score of 1 + 0 = 1.
+// In the third round, you will defeat your opponent's Scissors with Rock for a score of 1 + 6 = 7.
+// Now that you're correctly decrypting the ultra top secret strategy guide, you would get a total score of 12.
+
+// Following the Elf's instructions for the second column, what would your total
+// score be if everything goes exactly according to your strategy guide?
 package main
 
 import (
@@ -70,37 +88,31 @@ var moveScores = map[string]int{"X": 1, "Y": 2, "Z": 3}
 //     eg. "Rock" ("X") beats "Scissors" ("Z")
 var beatenBy = map[string]string{"X": "Z", "Y": "X", "Z": "Y"}
 
+var beats = map[string]string{"Z": "X", "X": "Y", "Y": "Z"}
+
 func main() {
 	partOneSolution := partOne("input.txt")
-	// partTwoSolution := partTwo("input.txt")
+	partTwoSolution := partTwo("input.txt")
 	fmt.Println("part one:", partOneSolution)
-	// fmt.Println("part two:", partTwoSolution)
+	fmt.Println("part two:", partTwoSolution)
 }
 
 // <<<<<<<<<<<<<<<<<<<<<<<<< Part one >>>>>>>>>>>>>>>>>>>>>>>>>
 
-func scoreMatch(my_play, opponent_play string, score *int) {
+func scoreMatch(myMove, opponentMove string, score *int) {
 	// add the gimme score for my move
-	*score += moveScores[my_play]
+	*score += moveScores[myMove]
 
 	// find the winner and increment the score accordingly
-	if my_play == opponent_play {
+	if myMove == opponentMove {
 		*score += 3
-	} else if opponent_play == beatenBy[my_play] {
+	} else if opponentMove == beatenBy[myMove] {
 		*score += 6
 	} else {
 	}
 }
 
 func partOne(path string) int {
-	// algorithm description:
-	// two counter vars: count, max
-	// read the data line-by-line
-	// if a newline is reached:
-	// 1. calculate the max: max = math.Max(max, curr)
-	// 2. reset the counter to 0
-	// else add the value to the counter
-
 	f, err := os.Open(path)
 	defer f.Close()
 
@@ -116,9 +128,50 @@ func partOne(path string) int {
 
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
-		opponent_play := convert[line[0]]
-		my_play := line[1]
-		scoreMatch(my_play, opponent_play, &score)
+		opponentMove := convert[line[0]]
+		myMove := line[1]
+		scoreMatch(myMove, opponentMove, &score)
+	}
+	return score
+}
+
+// <<<<<<<<<<<<<<<<<<<<<<<<< Part Two >>>>>>>>>>>>>>>>>>>>>>>>>
+
+// X: must lose
+// Y: must draw
+// Z: must win
+
+// * How to refactor both parts to minimize code changes...
+//   ideally keep scoreMatch the same
+
+func partTwo(path string) int {
+	f, err := os.Open(path)
+	defer f.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
+	// loop over the file line by line:
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	score := 0
+
+	for scanner.Scan() {
+		line := strings.Split(scanner.Text(), " ")
+		opponentMove := convert[line[0]]
+		outcome := line[1]
+		if outcome == "X" {
+			// must lose
+			score += moveScores[beatenBy[opponentMove]] + 6
+		} else if outcome == "Y" {
+			// must tie
+			score += moveScores[opponentMove] + 3
+		} else {
+			// must win
+			score += moveScores[beats[opponentMove]]
+		}
 	}
 	return score
 }
