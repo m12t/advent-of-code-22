@@ -58,8 +58,16 @@ import (
 // draw: 3
 // win:  6
 
+//   - The map `convert` maps the second move encoding {"A", "B", "C"}
+//     to {"X", "Y", "Z"} for easier comparisons between moves.
 var convert = map[string]string{"A": "X", "B": "Y", "C": "Z"}
+
+//   - The map `moveScores` maps the "gimme" values the
+//     player wins each round based on the choice of move.
 var moveScores = map[string]int{"X": 1, "Y": 2, "Z": 3}
+
+//   - The map `beatenBy` holds maps a move to the move it beats.
+//     eg. "Rock" ("X") beats "Scissors" ("Z")
 var beatenBy = map[string]string{"X": "Z", "Y": "X", "Z": "Y"}
 
 func main() {
@@ -108,9 +116,9 @@ func partOne(path string) int {
 
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
-		opponent_play := line[0]
+		opponent_play := convert[line[0]]
 		my_play := line[1]
-		scoreMatch(my_play, convert[opponent_play], &score)
+		scoreMatch(my_play, opponent_play, &score)
 	}
 	return score
 }
