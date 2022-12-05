@@ -159,7 +159,6 @@ func partOne(path string) int {
 		incrementPriority(dupe, &totalPriority)
 	}
 	return totalPriority
-
 }
 
 func findGroupBadge(rucksacks *[3]string) rune {
@@ -189,9 +188,7 @@ func findGroupBadge(rucksacks *[3]string) rune {
 			return rune
 		}
 	}
-
 	panic("No badge found!")
-
 }
 
 func partTwo(path string) int {
@@ -220,5 +217,4 @@ func partTwo(path string) int {
 		}
 	}
 	return totalPriority
-
 }
