@@ -37,6 +37,19 @@
 // ...45678.  4-8
 // Some of the pairs have noticed that one of their assignments fully contains the other. For example, 2-8 fully contains 3-7, and 6-6 is fully contained by 4-6. In pairs where one assignment fully contains the other, one Elf in the pair would be exclusively cleaning sections their partner will already be cleaning, so these seem like the most in need of reconsideration. In this example, there are 2 such pairs.
 
+// --- Part Two ---
+// It seems like there is still quite a bit of duplicate work planned. Instead, the Elves would like to know the number of pairs that overlap at all.
+
+// In the above example, the first two pairs (2-4,6-8 and 2-3,4-5) don't overlap, while the remaining four pairs (5-7,7-9, 2-8,3-7, 6-6,4-6, and 2-6,4-8) do overlap:
+
+// 5-7,7-9 overlaps in a single section, 7.
+// 2-8,3-7 overlaps all of the sections 3 through 7.
+// 6-6,4-6 overlaps in a single section, 6.
+// 2-6,4-8 overlaps in sections 4, 5, and 6.
+// So, in this example, the number of overlapping assignment pairs is 4.
+
+// In how many assignment pairs do the ranges overlap?
+
 package main
 
 import (
@@ -49,12 +62,12 @@ import (
 
 func main() {
 	partOneSolution := partOne("input.txt")
-	// partTwoSolution := partTwo("input.txt")
+	partTwoSolution := partTwo("input.txt")
 	fmt.Println("part one:", partOneSolution)
-	// fmt.Println("part two:", partTwoSolution)
+	fmt.Println("part two:", partTwoSolution)
 }
 
-func fullyContains(line string) int {
+func findOverlap(line string, partialOverlap bool) int {
 	// split the incoming string of pattern:
 	// `2-4,6-8` to [[2, 4],[6,8]]
 	var assignments [2][2]int
@@ -65,17 +78,21 @@ func fullyContains(line string) int {
 	}
 
 	var x uint8 = 0 // the assignment with the lower starting range
-	if assignments[1][0] == assignments[0][0] {
+	if assignments[1][0] == assignments[0][0] ||
+		assignments[1][1] == assignments[0][1] {
 		// * The sections are guaranteed to overlap
-		//   since they have the same lower bound.
+		//   since they have the same lower or upper.
 		return 1
-	} else if assignments[0][0] > assignments[1][0] {
+	}
+
+	if assignments[0][0] > assignments[1][0] {
 		// * Set `x` to the index of the range with
 		//   the lower starting bound.
 		x = 1
-	} else {
 	}
-
+	if partialOverlap && assignments[x][1] >= assignments[x^1][0] {
+		return 1
+	}
 	// * XOR `x` with `1` to get the array index of
 	//   the range with the larger starting bound.
 	// * Test if the range with the lower starting
@@ -102,7 +119,27 @@ func partOne(path string) int {
 	numFullyContained := 0
 
 	for scanner.Scan() {
-		numFullyContained += fullyContains(scanner.Text())
+		numFullyContained += findOverlap(scanner.Text(), false)
+	}
+	return numFullyContained
+}
+
+func partTwo(path string) int {
+	f, err := os.Open(path)
+	defer f.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
+	// loop over the file line by line:
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	numFullyContained := 0
+
+	for scanner.Scan() {
+		numFullyContained += findOverlap(scanner.Text(), true)
 	}
 	return numFullyContained
 }
