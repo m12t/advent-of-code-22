@@ -6,6 +6,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 )
 
 func main() {
@@ -15,19 +17,8 @@ func main() {
 	// fmt.Println("part two:", partTwoSolution)
 }
 
-// stacks!
-
-[C]         [Q]         [V]    
-[D]         [D] [S]     [M] [Z]
-[G]     [P] [W] [M]     [C] [G]
-[F]     [Z] [C] [D] [P] [S] [W]
-[P] [L]     [C] [V] [W] [W] [H] [L]
-[G] [B] [V] [R] [L] [N] [G] [P] [F]
-[R] [T] [S] [S] [S] [T] [D] [L] [P]
-[N] [J] [M] [L] [P] [C] [H] [Z] [R]
-
 type Node struct {
-	key  int
+	key  rune
 	next *Node
 }
 
@@ -37,26 +28,32 @@ type Stack struct {
 	capacity int
 }
 
+func buildStack() [9]Stack {
 
-func (stacks *Stack) buildStackOfSize(n int, evensOnly bool) {
+	var stacks [9]Stack
+
 	one := []rune{'N', 'R', 'G', 'P'}
 	two := []rune{'J', 'T', 'B', 'L', 'F', 'G', 'D', 'C'}
 	three := []rune{'M', 'S', 'V'}
 	four := []rune{'L', 'S', 'R', 'C', 'Z', 'P'}
 	five := []rune{'P', 'S', 'L', 'V', 'C', 'W', 'D', 'Q'}
 	six := []rune{'C', 'T', 'N', 'W', 'D', 'M', 'S'}
-	seven := []rune{'H', 'G', 'D', 'W', 'P'}
+	seven := []rune{'H', 'D', 'G', 'W', 'P'}
 	eight := []rune{'Z', 'L', 'P', 'H', 'S', 'C', 'M', 'V'}
-	nine := []rune{'R', 'P', 'F', 'L', 'W', 'G', 'Z'}  
-	for i := 0; i < n; i++ {
-		stack.push(i)
-		if evensOnly && i%2 == 1 {
-			stack.pop()
+	nine := []rune{'R', 'P', 'F', 'L', 'W', 'G', 'Z'}
+
+	all := [][]rune{one, two, three, four, five, six, seven, eight, nine}
+	for i, a := range all {
+		s := Stack{nil, len(a), 64}
+		for _, v := range a {
+			s.push(v)
 		}
+		stacks[i] = s
 	}
+	return stacks
 }
 
-func (stack *Stack) push(key int) bool {
+func (stack *Stack) push(key rune) bool {
 	if stack.isFull() {
 		// fmt.Println("ERROR: not enough space!")
 		return false
@@ -67,11 +64,8 @@ func (stack *Stack) push(key int) bool {
 	return true
 }
 
-func (stack *Stack) peek() (*Node, bool) {
-	if stack.len() > 0 {
-		return stack.head, true
-	}
-	return nil, false
+func (stack *Stack) peek() rune {
+	return stack.head.key
 }
 
 func (stack *Stack) pop() (*Node, bool) {
@@ -84,7 +78,6 @@ func (stack *Stack) pop() (*Node, bool) {
 	stack.size--
 	return node, true
 }
-
 func (stack *Stack) clear() {
 	for stack.size > 0 {
 		stack.pop()
@@ -106,16 +99,33 @@ func (stack *Stack) len() int {
 func (stack *Stack) show(vertical bool) {
 	for node := stack.head; node != nil; node = node.next {
 		if vertical {
-			fmt.Printf("\n%d\n---", node.key)
+			fmt.Printf("\n%s\n---", string(node.key))
 		} else {
-			fmt.Printf("%d -> ", node.key)
+			fmt.Printf("%s -> ", string(node.key))
 		}
 	}
 	fmt.Printf("\n")
 }
 
+func move(stacks *[9]Stack, instruction string) {
+	re := regexp.MustCompile("[0-9]+")
+	matches := re.FindAllString(instruction, -1)
+	var instructions [3]int
+	for i, v := range matches {
+		instructions[i], _ = strconv.Atoi(v)
+	}
+	instructions[1]--
+	instructions[2]--
+	for i := 0; i < instructions[0]; i++ {
+		if node, ok := stacks[instructions[1]].pop(); ok {
+			stacks[instructions[2]].push(node.key)
+		} else {
+			panic("whyy")
+		}
+	}
+}
 
-func partOne(path string) int {
+func partOne(path string) string {
 	f, err := os.Open(path)
 	defer f.Close()
 
@@ -127,13 +137,17 @@ func partOne(path string) int {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
-	numFullyContained := 0
-	stacks := [9]Stack
-
-	stacks.buildStack()
+	stacks := buildStack()
 
 	for scanner.Scan() {
 		// do something
+		move(&stacks, scanner.Text())
 	}
-	return numFullyContained
+	topCrates := ""
+	for i := 0; i < 9; i++ {
+		topCrates += string(stacks[i].peek())
+	}
+	return topCrates
 }
+
+// BCTSFHPLC not right
