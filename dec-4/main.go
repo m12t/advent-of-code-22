@@ -37,6 +37,8 @@
 // ...45678.  4-8
 // Some of the pairs have noticed that one of their assignments fully contains the other. For example, 2-8 fully contains 3-7, and 6-6 is fully contained by 4-6. In pairs where one assignment fully contains the other, one Elf in the pair would be exclusively cleaning sections their partner will already be cleaning, so these seem like the most in need of reconsideration. In this example, there are 2 such pairs.
 
+// In how many assignment pairs does one range fully contain the other?
+
 // --- Part Two ---
 // It seems like there is still quite a bit of duplicate work planned. Instead, the Elves would like to know the number of pairs that overlap at all.
 
@@ -77,19 +79,18 @@ func findOverlap(line string, partialOverlap bool) int {
 		}
 	}
 
-	// * The var `x` holds the `assignments` array
-	//   index for the range with the lower starting value.
-	// * Downstream, `x` is XOR'd with `1` to flip
-	//   it and get the array index of the range
-	//   with the _larger_ starting bound.
-	var x uint8 = 0
 	if assignments[1][0] == assignments[0][0] ||
 		assignments[1][1] == assignments[0][1] {
 		// * The sections are guaranteed to overlap
 		//   since they have the same lower or upper.
 		return 1
 	}
-
+	// * The var `x` holds the `assignments` array
+	//   index for the range with the lower starting value.
+	// * Downstream, `x` is XOR'd with `1` to flip
+	//   it and get the array index of the range
+	//   with the _larger_ starting bound.
+	var x uint8 = 0
 	if assignments[0][0] > assignments[1][0] {
 		// * Set `x` to the array index of the
 		//   range with the lower starting bound.
