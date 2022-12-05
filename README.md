@@ -90,9 +90,9 @@ A X
     1. The outcome was found by the following code:
         ```go
         if myMove == opponentMove {
-            *score += drawPoints
+            score += drawPoints
         } else if opponentMove == beatenBy[myMove] {
-            *score += winPoints
+            score += winPoints
         } else {
         }
         ```
