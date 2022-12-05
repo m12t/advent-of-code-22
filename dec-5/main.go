@@ -78,6 +78,7 @@ func (stack *Stack) pop() (*Node, bool) {
 	stack.size--
 	return node, true
 }
+
 func (stack *Stack) clear() {
 	for stack.size > 0 {
 		stack.pop()
@@ -116,11 +117,15 @@ func move(stacks *[9]Stack, instruction string) {
 	}
 	instructions[1]--
 	instructions[2]--
+	tmp := Stack{nil, 0, 64}
 	for i := 0; i < instructions[0]; i++ {
 		if node, ok := stacks[instructions[1]].pop(); ok {
+			tmp.push(node.key)
+		}
+	}
+	for i := 0; i < instructions[0]; i++ {
+		if node, ok := tmp.pop(); ok {
 			stacks[instructions[2]].push(node.key)
-		} else {
-			panic("whyy")
 		}
 	}
 }
@@ -149,5 +154,3 @@ func partOne(path string) string {
 	}
 	return topCrates
 }
-
-// BCTSFHPLC not right
