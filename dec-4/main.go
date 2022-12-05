@@ -77,7 +77,12 @@ func findOverlap(line string, partialOverlap bool) int {
 		}
 	}
 
-	var x uint8 = 0 // the assignment with the lower starting range
+	// * The var `x` holds the `assignments` array
+	//   index for the range with the lower starting value.
+	// * Downstream, `x` is XOR'd with `1` to flip
+	//   it and get the array index of the range
+	//   with the _larger_ starting bound.
+	var x uint8 = 0
 	if assignments[1][0] == assignments[0][0] ||
 		assignments[1][1] == assignments[0][1] {
 		// * The sections are guaranteed to overlap
@@ -86,18 +91,13 @@ func findOverlap(line string, partialOverlap bool) int {
 	}
 
 	if assignments[0][0] > assignments[1][0] {
-		// * Set `x` to the index of the range with
-		//   the lower starting bound.
+		// * Set `x` to the array index of the
+		//   range with the lower starting bound.
 		x = 1
 	}
 	if partialOverlap && assignments[x][1] >= assignments[x^1][0] {
 		return 1
 	}
-	// * XOR `x` with `1` to get the array index of
-	//   the range with the larger starting bound.
-	// * Test if the range with the lower starting
-	//   bound has a higher or equal upper bound
-	//   than the range with the larger starting bound.
 	if assignments[x][1] >= assignments[x^1][1] {
 		return 1
 	}
