@@ -1,5 +1,5 @@
 #!/bin/bash
-for day in {1..25}
+for day in $(seq -f "%02g" 1 25)
 do
    mkdir "dec-${day}"
    cd "dec-${day}"
