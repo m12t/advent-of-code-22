@@ -33,6 +33,18 @@
 // - While the whole file could be read into memory, streaming is more efficient.
 
 // --- Part Two ---
+// Your device's communication system is correctly detecting packets, but still isn't working. It looks like it also needs to look for messages.
+
+// A start-of-message marker is just like a start-of-packet marker, except it consists of 14 distinct characters rather than 4.
+
+// Here are the first positions of start-of-message markers for all of the above examples:
+
+// mjqjpqmgbljsphdztnvjfqwrcgsmlb: first marker after character 19
+// bvwbjplbgvbhsrlpgdmjqwftvncz: first marker after character 23
+// nppdvjthqldpwncqszvftbrmjlhg: first marker after character 23
+// nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg: first marker after character 29
+// zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw: first marker after character 26
+// How many characters need to be processed before the first start-of-message marker is detected?
 
 package main
 
@@ -43,7 +55,11 @@ import (
 	"os"
 )
 
-const chunksize = 1024
+const (
+	chunksize   = 1024
+	packetSize  = 4
+	messageSize = 14
+)
 
 var (
 	count int
@@ -51,21 +67,21 @@ var (
 )
 
 func main() {
-	partOneSolution := partOne("input.txt")
-	partTwoSolution := partTwo("input.txt")
+	partOneSolution := solve("input.txt", packetSize)
+	partTwoSolution := solve("input.txt", messageSize)
 	fmt.Println("part one:", partOneSolution)
 	fmt.Println("part two:", partTwoSolution)
 }
 
-func allUnique(a *[]byte) bool {
+func allUnique(a *[]byte, size int) bool {
 	windowMap := make(map[byte]bool)
 	for _, c := range *a {
 		windowMap[c] = true
 	}
-	return len(windowMap) == 4
+	return len(windowMap) == size
 }
 
-func partOne(path string) int {
+func solve(path string, size int) int {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -76,7 +92,7 @@ func partOne(path string) int {
 	reader := bufio.NewReader(file)
 	buffer := bytes.NewBuffer(make([]byte, 0))
 	section := make([]byte, chunksize)
-	window := make([]byte, 4)
+	window := make([]byte, size)
 	position := 0
 
 	for {
@@ -86,25 +102,14 @@ func partOne(path string) int {
 		buffer.Write(section[:count])
 		section = section[:count]
 		for _, c := range section {
-			window[position%4] = c
-			if allUnique(&window) && position > 3 {
+			window[position%size] = c
+			if allUnique(&window, size) && position > 3 {
 				fmt.Println(string(window))
 				return position + 1
 			}
 			position++
 		}
 		fmt.Println()
-	}
-	fmt.Println("position", position)
-	return 0
-}
-
-func partTwo(path string) int {
-	f, err := os.Open(path)
-	defer f.Close()
-
-	if err != nil {
-		panic(err)
 	}
 	return 0
 }
