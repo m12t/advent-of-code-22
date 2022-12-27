@@ -73,14 +73,6 @@ func main() {
 	fmt.Println("part two:", partTwoSolution)
 }
 
-func allUnique(a *[]byte, size int) bool {
-	windowMap := make(map[byte]bool)
-	for _, c := range *a {
-		windowMap[c] = true
-	}
-	return len(windowMap) == size
-}
-
 func solve(path string, size int) int {
 	file, err := os.Open(path)
 	if err != nil {
@@ -93,7 +85,7 @@ func solve(path string, size int) int {
 	buffer := bytes.NewBuffer(make([]byte, 0))
 	section := make([]byte, chunksize)
 	window := make([]byte, size)
-	windowMap := make(map[byte]int)
+	hashmap := make(map[byte]int)
 	i := 0
 
 	for {
@@ -103,18 +95,28 @@ func solve(path string, size int) int {
 		buffer.Write(section[:count])
 		section = section[:count]
 		for _, c := range section {
-			windowMap[window[i%size]]--
-			if windowMap[window[i%size]] < 1 {
-				delete(windowMap, window[i%size])
+			// * Use an array to keep track of a rolling window
+			//   of bytes.
+			// * A map is used with a count of occurances, since
+			//   a "set" with boolean values will run into issues
+			//   if the expired value to be deleted also (rightfully)
+			//   appears later in the window. This will cause the
+			//   correct instance of the char to be removed as well.
+			// * By storing a value, it is easy to identify
+			//   duplicated values within the window by checking
+			//   the value of the map for that char.
+			hashmap[window[i%size]]--
+			if hashmap[window[i%size]] < 1 {
+				delete(hashmap, window[i%size])
 			}
 			window[i%size] = c
-			windowMap[c]++
-			if len(windowMap) == size {
-				fmt.Println(windowMap)
+			hashmap[c]++
+			if len(hashmap) == size {
+				fmt.Println(hashmap)
 				return i + 1
 			}
 			i++
 		}
 	}
-	return 0
+	return -1
 }
