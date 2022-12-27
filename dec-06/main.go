@@ -112,7 +112,6 @@ func solve(path string, size int) int {
 			window[i%size] = c
 			hashmap[c]++
 			if len(hashmap) == size {
-				fmt.Println(hashmap)
 				return i + 1
 			}
 			i++
