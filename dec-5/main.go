@@ -10,41 +10,36 @@ import (
 	"strconv"
 )
 
+// used to red the input and build the stack
+const (
+	firstCrateIdx       = 1
+	crateOffset         = 4
+	firstLetterByteCode = 65
+)
+
 func main() {
-	partOneSolution := partOne("input.txt")
+	partOneSolution := partOne("full_input.txt")
 	// partTwoSolution := partTwo("input.txt")
 	fmt.Println("part one:", partOneSolution)
 	// fmt.Println("part two:", partTwoSolution)
 }
 
 type Node struct {
-	key  rune
+	key  byte
 	next *Node
 }
 
 type Stack struct {
-	head     *Node
-	size     int
-	capacity int
+	head *Node
+	size int
 }
 
-func buildStack() [9]Stack {
+func buildStack(inputs *[9][]byte) [9]Stack {
 
 	var stacks [9]Stack
 
-	one := []rune{'N', 'R', 'G', 'P'}
-	two := []rune{'J', 'T', 'B', 'L', 'F', 'G', 'D', 'C'}
-	three := []rune{'M', 'S', 'V'}
-	four := []rune{'L', 'S', 'R', 'C', 'Z', 'P'}
-	five := []rune{'P', 'S', 'L', 'V', 'C', 'W', 'D', 'Q'}
-	six := []rune{'C', 'T', 'N', 'W', 'D', 'M', 'S'}
-	seven := []rune{'H', 'D', 'G', 'W', 'P'}
-	eight := []rune{'Z', 'L', 'P', 'H', 'S', 'C', 'M', 'V'}
-	nine := []rune{'R', 'P', 'F', 'L', 'W', 'G', 'Z'}
-
-	all := [][]rune{one, two, three, four, five, six, seven, eight, nine}
-	for i, a := range all {
-		s := Stack{nil, len(a), 64}
+	for i, a := range inputs {
+		s := Stack{nil, len(a)}
 		for _, v := range a {
 			s.push(v)
 		}
@@ -53,18 +48,14 @@ func buildStack() [9]Stack {
 	return stacks
 }
 
-func (stack *Stack) push(key rune) bool {
-	if stack.isFull() {
-		// fmt.Println("ERROR: not enough space!")
-		return false
-	}
+func (stack *Stack) push(key byte) bool {
 	node := Node{key, stack.head}
 	stack.head = &node
 	stack.size++
 	return true
 }
 
-func (stack *Stack) peek() rune {
+func (stack *Stack) peek() byte {
 	return stack.head.key
 }
 
@@ -87,10 +78,6 @@ func (stack *Stack) clear() {
 
 func (stack *Stack) isEmpty() bool {
 	return stack.size == 0
-}
-
-func (stack *Stack) isFull() bool {
-	return stack.size == stack.capacity
 }
 
 func (stack *Stack) len() int {
@@ -117,7 +104,7 @@ func move(stacks *[9]Stack, instruction string) {
 	}
 	instructions[1]--
 	instructions[2]--
-	tmp := Stack{nil, 0, 64}
+	tmp := Stack{nil, 0}
 	for i := 0; i < instructions[0]; i++ {
 		if node, ok := stacks[instructions[1]].pop(); ok {
 			tmp.push(node.key)
@@ -142,15 +129,34 @@ func partOne(path string) string {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
-	stacks := buildStack()
+	var inputs [9][]byte
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			break
+		}
+		for i := 0; i < 9; i++ {
+			r := line[i*crateOffset+1]
+			if r == ' ' || r < firstLetterByteCode {
+				continue
+			}
+			inputs[i] = append(inputs[i], r)
+		}
+	}
+	stackArray := buildStack(&inputs)
+	for i := 0; i < 9; i++ {
+		stackArray[i].show(false)
+	}
 
 	for scanner.Scan() {
 		// do something
-		move(&stacks, scanner.Text())
+		// stackBuilt = true
+		move(&stackArray, scanner.Text())
 	}
 	topCrates := ""
 	for i := 0; i < 9; i++ {
-		topCrates += string(stacks[i].peek())
+		topCrates += string(stackArray[i].peek())
 	}
 	return topCrates
 }
