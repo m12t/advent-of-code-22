@@ -93,7 +93,8 @@ func solve(path string, size int) int {
 	buffer := bytes.NewBuffer(make([]byte, 0))
 	section := make([]byte, chunksize)
 	window := make([]byte, size)
-	position := 0
+	windowMap := make(map[byte]int)
+	i := 0
 
 	for {
 		if count, err = reader.Read(section); err != nil {
@@ -102,14 +103,18 @@ func solve(path string, size int) int {
 		buffer.Write(section[:count])
 		section = section[:count]
 		for _, c := range section {
-			window[position%size] = c
-			if allUnique(&window, size) && position > 3 {
-				fmt.Println(string(window))
-				return position + 1
+			windowMap[window[i%size]]--
+			if windowMap[window[i%size]] < 1 {
+				delete(windowMap, window[i%size])
 			}
-			position++
+			window[i%size] = c
+			windowMap[c]++
+			if len(windowMap) == size {
+				fmt.Println(windowMap)
+				return i + 1
+			}
+			i++
 		}
-		fmt.Println()
 	}
 	return 0
 }
