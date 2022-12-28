@@ -86,13 +86,14 @@ var (
 	lastLine   = []string{"", ""}
 	output     []string
 	dirSizes   = make(map[string]int)
-	head       = node{name: "/"}
+	seen       = make(map[string]int)
+	head       = node{}
 	currentDir = &head
 )
 
 // tree to store the directories
 type node struct {
-	name     string
+	path     string
 	parent   *node
 	children []*node
 }
@@ -104,30 +105,41 @@ func main() {
 	// fmt.Println("part two:", partTwoSolution)
 }
 
-func handleCd(output *[]string) {
-	for _, line := range *output {
-		fmt.Println(line)
-		parentOrChild := strings.Split(line, " ")[2]
-		if parentOrChild == ".." {
-			// go to the parent directory
-			currentDir = currentDir.parent
-			continue
-		}
-		// find the child directory node and make it the current node
-		for _, dir := range currentDir.children {
-			if dir.name == parentOrChild {
-				currentDir = dir
-			}
+func handleCd(line *string) {
+	directory := strings.Split(*line, " ")[2]
+	if directory == ".." {
+		// go to the parent directory
+		fmt.Println("going back from", currentDir.path, "to", currentDir.parent.path)
+		currentDir = currentDir.parent
+		return
+	}
+	// find the child directory node and make it the current node
+	fullPath := currentDir.path + directory
+	for _, dir := range currentDir.children {
+		if dir.path == fullPath {
+			currentDir = dir
+			return
 		}
 	}
+	currentDir = currentDir.addChild(directory)
+
+}
+
+func (parent *node) addChild(childPath string) *node {
+	if childPath == "/" {
+		// prevent dougle slash on first `cd /`
+		childPath = ""
+	}
+	child := node{path: parent.path + childPath + "/", parent: parent}
+	parent.children = append(parent.children, &child)
+	return &child
 }
 
 func handleLs(output *[]string) {
 	for _, line := range *output {
 		splt := strings.Split(line, " ")
 		if splt[0] == "dir" {
-			child := &node{name: splt[1], parent: currentDir}
-			currentDir.children = append(currentDir.children, child)
+			currentDir.addChild(splt[1])
 			continue
 		}
 		val, err := strconv.Atoi(splt[0])
@@ -137,7 +149,12 @@ func handleLs(output *[]string) {
 			//   `for _, line := range (*output)[1:]`
 			continue
 		}
-		dirSizes[currentDir.name] += val
+		fmt.Println(currentDir.path + splt[1])
+		seen[currentDir.path+splt[1]]++
+		if seen[currentDir.path+splt[1]] == 1 {
+			// ensure that files are only counted once
+			dirSizes[currentDir.path] += val
+		}
 	}
 }
 
@@ -158,7 +175,7 @@ func solve(path string) int {
 		if line[0] == '$' && len(output) > 0 {
 			switch strings.Split(output[0], " ")[1] {
 			case "cd":
-				handleCd(&output)
+				handleCd(&output[0])
 			case "ls":
 				handleLs(&output)
 			}
@@ -167,9 +184,44 @@ func solve(path string) int {
 		output = append(output, line)
 	}
 
-	// * Now perform a DFS on the tree to find all the sum of all directories whose
-	//   size < 100_000
+	// PROBLEM: the current solution only sums files, and a parent dir
+	// 			will not contain the child directories' sizes
+	// * Now perform a DFS on the tree to find all the sum
+	//   of all directories where size < 100_000
+
+	head.dfs()
+	total := 0
+	for _, size := range dirSizes {
+		total += size
+	}
 
 	fmt.Println(dirSizes)
+	return total
+}
+
+func (head *node) dfs() {
+	// add the
+	// need complete paths if using a hashmap since
+
+	// for _, child := range head.children {
+
+	// }
+
+	// node := list.head
+	// var last *Node
+	// for node != nil && node.val < val {
+	// 	if node.next == nil {
+	// 		// newNode it's the new largest node
+	// 		node.next = newNode
+	// 		list.head = list.head.next
+	// 		return
+	// 	}
+	// 	last = node
+	// 	node = node.next
+	// }
+
+}
+
+func (node *node) dfsVisit() int {
 	return 0
 }
