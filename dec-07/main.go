@@ -82,6 +82,10 @@ import (
 	"strings"
 )
 
+const (
+	maxSize = 100_000
+)
+
 var (
 	lastLine   = []string{"", ""}
 	output     []string
@@ -109,7 +113,6 @@ func handleCd(line *string) {
 	directory := strings.Split(*line, " ")[2]
 	if directory == ".." {
 		// go to the parent directory
-		fmt.Println("going back from", currentDir.path, "to", currentDir.parent.path)
 		currentDir = currentDir.parent
 		return
 	}
@@ -154,6 +157,12 @@ func handleLs(output *[]string) {
 		if seen[currentDir.path+splt[1]] == 1 {
 			// ensure that files are only counted once
 			dirSizes[currentDir.path] += val
+			tmpDir := currentDir
+			for tmpDir.parent != nil {
+				// add the value to all the parent directories' sizes
+				tmpDir = tmpDir.parent
+				dirSizes[tmpDir.path] += val
+			}
 		}
 	}
 }
@@ -184,44 +193,13 @@ func solve(path string) int {
 		output = append(output, line)
 	}
 
-	// PROBLEM: the current solution only sums files, and a parent dir
-	// 			will not contain the child directories' sizes
-	// * Now perform a DFS on the tree to find all the sum
-	//   of all directories where size < 100_000
-
-	head.dfs()
 	total := 0
 	for _, size := range dirSizes {
-		total += size
+		if size <= maxSize {
+			total += size
+		}
 	}
 
 	fmt.Println(dirSizes)
 	return total
-}
-
-func (head *node) dfs() {
-	// add the
-	// need complete paths if using a hashmap since
-
-	// for _, child := range head.children {
-
-	// }
-
-	// node := list.head
-	// var last *Node
-	// for node != nil && node.val < val {
-	// 	if node.next == nil {
-	// 		// newNode it's the new largest node
-	// 		node.next = newNode
-	// 		list.head = list.head.next
-	// 		return
-	// 	}
-	// 	last = node
-	// 	node = node.next
-	// }
-
-}
-
-func (node *node) dfsVisit() int {
-	return 0
 }
