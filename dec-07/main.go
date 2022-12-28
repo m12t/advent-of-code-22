@@ -76,66 +76,100 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"os"
-)
-
-const (
-	chunksize   = 1024
-	packetSize  = 4
-	messageSize = 14
+	"strconv"
+	"strings"
 )
 
 var (
-	count int
-	err   error
+	lastLine   = []string{"", ""}
+	output     []string
+	dirSizes   = make(map[string]int)
+	head       = node{name: "/"}
+	currentDir = &head
 )
 
+// tree to store the directories
+type node struct {
+	name     string
+	parent   *node
+	children []*node
+}
+
 func main() {
-	partOneSolution := solve("input.txt", packetSize)
-	partTwoSolution := solve("input.txt", messageSize)
+	partOneSolution := solve("input.txt")
 	fmt.Println("part one:", partOneSolution)
-	fmt.Println("part two:", partTwoSolution)
+	// partTwoSolution := solve("input.txt", messageSize)
+	// fmt.Println("part two:", partTwoSolution)
 }
 
-func allUnique(a *[]byte, size int) bool {
-	windowMap := make(map[byte]bool)
-	for _, c := range *a {
-		windowMap[c] = true
+func handleCd(output *[]string) {
+	for _, line := range *output {
+		fmt.Println(line)
+		parentOrChild := strings.Split(line, " ")[2]
+		if parentOrChild == ".." {
+			// go to the parent directory
+			currentDir = currentDir.parent
+			continue
+		}
+		// find the child directory node and make it the current node
+		for _, dir := range currentDir.children {
+			if dir.name == parentOrChild {
+				currentDir = dir
+			}
+		}
 	}
-	return len(windowMap) == size
 }
 
-func solve(path string, size int) int {
+func handleLs(output *[]string) {
+	for _, line := range *output {
+		splt := strings.Split(line, " ")
+		if splt[0] == "dir" {
+			child := &node{name: splt[1], parent: currentDir}
+			currentDir.children = append(currentDir.children, child)
+			continue
+		}
+		val, err := strconv.Atoi(splt[0])
+		if err != nil {
+			// * This happens on the first row, `$ ls`...
+			// * The other solution is to remove it:
+			//   `for _, line := range (*output)[1:]`
+			continue
+		}
+		dirSizes[currentDir.name] += val
+	}
+}
+
+func solve(path string) int {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-
 	// loop over the file line by line:
-	reader := bufio.NewReader(file)
-	buffer := bytes.NewBuffer(make([]byte, 0))
-	section := make([]byte, chunksize)
-	window := make([]byte, size)
-	position := 0
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
 
-	for {
-		if count, err = reader.Read(section); err != nil {
-			break
-		}
-		buffer.Write(section[:count])
-		section = section[:count]
-		for _, c := range section {
-			window[position%size] = c
-			if allUnique(&window, size) && position > 3 {
-				fmt.Println(string(window))
-				return position + 1
+	// * loop over the command and output history
+	//   and build a tree out of the information
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line[0] == '$' && len(output) > 0 {
+			switch strings.Split(output[0], " ")[1] {
+			case "cd":
+				handleCd(&output)
+			case "ls":
+				handleLs(&output)
 			}
-			position++
+			output = nil
 		}
-		fmt.Println()
+		output = append(output, line)
 	}
+
+	// * Now perform a DFS on the tree to find all the sum of all directories whose
+	//   size < 100_000
+
+	fmt.Println(dirSizes)
 	return 0
 }
