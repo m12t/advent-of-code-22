@@ -45,11 +45,12 @@ const (
 type Grid [][]int
 
 var (
-	forest Grid
+	forest  Grid
+	counted = make(map[string]bool)
 )
 
 func main() {
-	partOneSolution, partTwoSolution := solve("input_test.txt")
+	partOneSolution, partTwoSolution := solve("input.txt")
 	fmt.Println("part one:", partOneSolution)
 	fmt.Println("part two:", partTwoSolution)
 }
@@ -58,22 +59,59 @@ func (forest *Grid) findVisible() int {
 	// * Need to loop over 4x and see the number of visible trees.
 	// * No optimizations for the time being
 	numVisible, sideLength := 0, len(*forest)
-	numVisible += forest.findVisibleFromLeft(sideLength)
+	numVisible += forest.findVisibleFromEastWest(sideLength)
+	numVisible += forest.findVisibleFromNorthSouth(sideLength)
 	return numVisible
 }
 
-func (forest *Grid) findVisibleFromLeft(sideLength int) int {
-	numVisible := sideLength // the first row is all visible
+func (forest *Grid) findVisibleFromEastWest(sideLength int) int {
+	numVisible := 0 // the first row is all visible
 	for row := 0; row < sideLength; row++ {
-		tallestInRow := (*forest)[row][0]
-		for col := 1; col < sideLength; col++ {
-			if (*forest)[row][col] > tallestInRow {
-				tallestInRow = (*forest)[row][col]
-				numVisible += 1
+		tallestInEast, tallestInWest := -1, -1
+		for col := 0; col < sideLength; col++ {
+			westTree, eastTree := (*forest)[row][col], (*forest)[row][sideLength-col-1]
+			if westTree > tallestInWest {
+				tallestInWest = westTree
+				key := fmt.Sprintf("[%d][%d]", row, col)
+				if _, present := counted[key]; !present {
+					numVisible += 1
+					counted[key] = true
+				}
 			}
-			if (*forest)[row][col] == maxTreeHeight {
-				// nothing further will be visible
-				break
+			if eastTree > tallestInEast {
+				tallestInEast = eastTree
+				key := fmt.Sprintf("[%d][%d]", row, sideLength-col-1)
+				if _, present := counted[key]; !present {
+					numVisible += 1
+					counted[key] = true
+				}
+			}
+		}
+	}
+	return numVisible
+}
+
+func (forest *Grid) findVisibleFromNorthSouth(sideLength int) int {
+	numVisible := 0 // the first row is all visible
+	for col := 0; col < sideLength; col++ {
+		tallestInNorth, tallestInSouth := -1, -1
+		for row := 0; row < sideLength; row++ {
+			northTree, southTree := (*forest)[row][col], (*forest)[sideLength-row-1][col]
+			if northTree > tallestInNorth {
+				tallestInNorth = northTree
+				key := fmt.Sprintf("[%d][%d]", row, col)
+				if _, present := counted[key]; !present {
+					numVisible += 1
+					counted[key] = true
+				}
+			}
+			if southTree > tallestInSouth {
+				tallestInSouth = southTree
+				key := fmt.Sprintf("[%d][%d]", sideLength-row-1, col)
+				if _, present := counted[key]; !present {
+					numVisible += 1
+					counted[key] = true
+				}
 			}
 		}
 	}
