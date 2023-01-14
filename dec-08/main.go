@@ -39,17 +39,45 @@ import (
 )
 
 const (
-	tallestTree = 9
+	maxTreeHeight = 9
 )
 
+type Grid [][]int
+
 var (
-	grid [][]int
+	forest Grid
 )
 
 func main() {
-	partOneSolution, partTwoSolution := solve("input.txt")
+	partOneSolution, partTwoSolution := solve("input_test.txt")
 	fmt.Println("part one:", partOneSolution)
 	fmt.Println("part two:", partTwoSolution)
+}
+
+func (forest *Grid) findVisible() int {
+	// * Need to loop over 4x and see the number of visible trees.
+	// * No optimizations for the time being
+	numVisible, sideLength := 0, len(*forest)
+	numVisible += forest.findVisibleFromLeft(sideLength)
+	return numVisible
+}
+
+func (forest *Grid) findVisibleFromLeft(sideLength int) int {
+	numVisible := sideLength // the first row is all visible
+	for row := 0; row < sideLength; row++ {
+		tallestInRow := (*forest)[row][0]
+		for col := 1; col < sideLength; col++ {
+			if (*forest)[row][col] > tallestInRow {
+				tallestInRow = (*forest)[row][col]
+				numVisible += 1
+			}
+			if (*forest)[row][col] == maxTreeHeight {
+				// nothing further will be visible
+				break
+			}
+		}
+	}
+	return numVisible
 }
 
 func solve(path string) (int, int) {
@@ -68,7 +96,8 @@ func solve(path string) (int, int) {
 		for _, v := range line {
 			row = append(row, int(v-'0'))
 		}
-		grid = append(grid, row)
+		forest = append(forest, row)
 	}
-	return 0, 0
+
+	return forest.findVisible(), 0
 }
