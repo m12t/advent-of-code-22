@@ -72,6 +72,24 @@
 // To begin, find all of the directories with a total size of at most 100000, then calculate the sum of their total sizes. In the example above, these directories are a and e; the sum of their total sizes is 95437 (94853 + 584). (As in this example, this process can count files more than once!)
 
 // Find all of the directories with a total size of at most 100000. What is the sum of the total sizes of those directories?
+
+// --- Part Two ---
+// Now, you're ready to choose a directory to delete.
+
+// The total disk space available to the filesystem is 70000000. To run the update, you need unused space of at least 30000000. You need to find a directory you can delete that will free up enough space to run the update.
+
+// In the example above, the total size of the outermost directory (and thus the total amount of used space) is 48381165; this means that the size of the unused space must currently be 21618835, which isn't quite the 30000000 required by the update. Therefore, the update still requires a directory with total size of at least 8381165 to be deleted before it can run.
+
+// To achieve this, you have the following options:
+
+// Delete directory e, which would increase unused space by 584.
+// Delete directory a, which would increase unused space by 94853.
+// Delete directory d, which would increase unused space by 24933642.
+// Delete directory /, which would increase unused space by 48381165.
+// Directories e and a are both too small; deleting them would not free up enough space. However, directories d and / are both big enough! Between these, choose the smallest: d, increasing unused space by 24933642.
+
+// Find the smallest directory that, if deleted, would free up enough space on the filesystem to run the update. What is the total size of that directory?
+
 package main
 
 import (
@@ -83,16 +101,19 @@ import (
 )
 
 const (
-	maxSize = 100_000
+	maxSize        = 100_000
+	minFreeSpace   = 30_000_000
+	totalDiskSpace = 70_000_000
 )
 
 var (
-	lastLine   = []string{"", ""}
-	output     []string
-	dirSizes   = make(map[string]int)
-	seen       = make(map[string]int)
-	head       = node{}
-	currentDir = &head
+	lastLine                 = []string{"", ""}
+	output                   []string
+	dirSizes                 = make(map[string]int)
+	seen                     = make(map[string]int)
+	head                     = node{}
+	currentDir               = &head
+	smallestBigEnoughDirSize = 0
 )
 
 // tree to store the directories
@@ -103,10 +124,9 @@ type node struct {
 }
 
 func main() {
-	partOneSolution := solve("input.txt")
+	partOneSolution, partTwoSolution := solve("input.txt")
 	fmt.Println("part one:", partOneSolution)
-	// partTwoSolution := solve("input.txt", messageSize)
-	// fmt.Println("part two:", partTwoSolution)
+	fmt.Println("part two:", partTwoSolution)
 }
 
 func handleCd(line *string) {
@@ -152,7 +172,7 @@ func handleLs(output *[]string) {
 			//   `for _, line := range (*output)[1:]`
 			continue
 		}
-		fmt.Println(currentDir.path + splt[1])
+		// fmt.Println(currentDir.path + splt[1])
 		seen[currentDir.path+splt[1]]++
 		if seen[currentDir.path+splt[1]] == 1 {
 			// ensure that files are only counted once
@@ -167,7 +187,17 @@ func handleLs(output *[]string) {
 	}
 }
 
-func solve(path string) int {
+func parseOutput(output *[]string) *[]string {
+	switch strings.Split((*output)[0], " ")[1] {
+	case "cd":
+		handleCd(&(*output)[0])
+	case "ls":
+		handleLs(output)
+	}
+	return output
+}
+
+func solve(path string) (int, int) {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -182,24 +212,27 @@ func solve(path string) int {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line[0] == '$' && len(output) > 0 {
-			switch strings.Split(output[0], " ")[1] {
-			case "cd":
-				handleCd(&output[0])
-			case "ls":
-				handleLs(&output)
-			}
+			parseOutput(&output)
 			output = nil
 		}
 		output = append(output, line)
 	}
+	if output != nil {
+		// handle the last line
+		parseOutput(&output)
+	}
 
 	total := 0
+	mustFree := minFreeSpace - (totalDiskSpace - dirSizes["/"])
+	smallestBigEnoughDirSize = dirSizes["/"]
 	for _, size := range dirSizes {
 		if size <= maxSize {
 			total += size
 		}
+		if size >= mustFree && size < smallestBigEnoughDirSize {
+			smallestBigEnoughDirSize = size
+		}
 	}
 
-	fmt.Println(dirSizes)
-	return total
+	return total, smallestBigEnoughDirSize
 }
