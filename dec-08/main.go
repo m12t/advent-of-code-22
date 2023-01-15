@@ -195,7 +195,6 @@ func (forest *grid) findMostScenic() int {
 	for row := 1; row < sideLength-1; row++ {
 		for col := 1; col < sideLength-1; col++ {
 			view := forest.calcScenicScore(row, col, sideLength)
-			fmt.Printf("[%d][%d] = %d\n", row, col, view)
 			if view > mostScenic {
 				mostScenic = view
 			}
