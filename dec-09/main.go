@@ -239,9 +239,6 @@
 
 // Simulate your complete hypothetical series of motions. How many positions does the tail of the rope visit at least once?
 
-// NOTES:
-// - How to find out if a move is adjacent? If neither of (x, y) between head and tail are the same?
-
 package main
 
 import (
@@ -270,18 +267,18 @@ func main() {
 	fmt.Println("part two:", partTwoSolution)
 }
 
+//   - keyify() returns a string to be used in the `visited` hashmap
+//     based upon the point's coordinated
 func (point *point) keyify() string {
 	return fmt.Sprintf("%d,%d", point.x, point.y)
 }
 
+// - calcDistance() calculates the Euclidean distance between the head and tail points
 func (rope *rope) calcDistance() float64 {
 	return math.Sqrt(math.Pow(float64(rope.head.x-rope.tail.x), 2) + math.Pow(float64(rope.head.y-rope.tail.y), 2))
 }
 
 func (rope *rope) move(dir byte, steps int) float64 {
-	// fmt.Println(rope.head.keyify())
-	// if the distance after the move > 1, move tail to previous head position.
-	// fmt.Println("dir:", string(dir), "steps:", steps)
 	for i := 0; i < steps; i++ {
 		previousX, previousY := rope.head.x, rope.head.y
 		switch dir {
@@ -299,7 +296,6 @@ func (rope *rope) move(dir byte, steps int) float64 {
 			rope.tail.x = previousX
 			rope.tail.y = previousY
 		}
-		// fmt.Println("head:", rope.head.keyify(), "tail:", rope.tail.keyify())
 		visited[rope.tail.keyify()] = true
 
 	}
@@ -312,12 +308,10 @@ func solve(path string) (int, int) {
 		panic(err)
 	}
 	defer file.Close()
-	// loop over the file line by line:
+
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 
-	// * loop over the command and output history
-	//   and build a tree out of the information
 	rope := rope{}
 	var dir byte
 	var step int
